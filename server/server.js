@@ -26,3 +26,7 @@ app.post('/todos', (req, res) => {
 app.listen(port, () => {
     console.log(`Server is runing on port ${port}`);
 });
+
+module.exports = {
+    app
+}
