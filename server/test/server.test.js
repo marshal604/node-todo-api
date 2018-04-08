@@ -5,8 +5,17 @@ const { app } = require('../server'); // post api 主體
 const { Todo } = require('../models/todo'); // todo schema
 
 describe('Server Test Case', () => {
+    const todos = [
+        {
+            text: 'first'
+        },
+        {
+            text: 'second'
+        }
+    ];
     beforeEach((done) => {
         Todo.remove({})
+            .then(() => Todo.insertMany(todos))
             .then(() => done())
             .catch(e => done(e));
     });
@@ -16,8 +25,8 @@ describe('Server Test Case', () => {
             .post('/todos')
             .send({ text })
             .expect(200)
-            .expect((req, res) => {
-                expect(req.body.text).toBe(text);
+            .expect((res) => {
+                expect(res.body.text).toBe(text);
             })
             .end((err, res) => {
                 // post error
@@ -26,7 +35,7 @@ describe('Server Test Case', () => {
                 }
 
                 // check db have todo data
-                Todo.find().then((todos) => {
+                Todo.find({ text }).then((todos) => {
                     expect(todos.length).toBe(1);
                     expect(todos[0].text).toBe(text);
                     done();
@@ -34,7 +43,6 @@ describe('Server Test Case', () => {
 
             });
     });
-
     it('POST /todos error, because can not post empty object to todos', (done) => {
         request(app)
             .post('/todos')
@@ -46,8 +54,19 @@ describe('Server Test Case', () => {
                 }
             });
         Todo.find().then(todos => {
-            expect(todos.length).toBe(0);
+            expect(todos.length).toBe(2);
             done();
         }).catch(err => done(err));
     });
-})
+
+    it('GET /todos', (done) => {
+        request(app)
+            .get('/todos')
+            .expect(200)
+            .expect((res) => {
+                console.log('res', res);
+                expect(res.body.todos.length).toBe(2);
+            })
+            .end(done);
+    });
+});
