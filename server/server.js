@@ -1,3 +1,12 @@
+const env = process.env.NODE_ENV || 'development';
+if (env === 'development') {
+    process.env.PORT = 3000;
+    process.env.MONGODB_URL = 'mongodb://localhost:27017/TodoApp';
+} else if (env === 'test') {
+    process.env.PORT = 3000;
+    process.env.MONGODB_URL = 'mongodb://localhost:27017/TodoAppTest';
+}
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const { ObjectID } = require('mongodb');
@@ -7,7 +16,7 @@ const { Todo } = require('./models/todo');
 const _ = require('lodash');
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT;
 
 // use bodyParser to encode json
 app.use(bodyParser.json());
