@@ -1,18 +1,21 @@
 const expect = require('expect'); // 測試期望值
 const request = require('supertest'); // 測試post api
 const { app } = require('../server'); // post api 主體
-
+const { ObjectID } = require('mongodb');
 const { Todo } = require('../models/todo'); // todo schema
 
 describe('Server Test Case', () => {
     const todos = [
         {
+            _id: new ObjectID,
             text: 'first'
         },
         {
+            _id: new ObjectID,
             text: 'second'
         }
     ];
+    const id = new ObjectID();
     beforeEach((done) => {
         Todo.remove({})
             .then(() => Todo.insertMany(todos))
@@ -64,9 +67,37 @@ describe('Server Test Case', () => {
             .get('/todos')
             .expect(200)
             .expect((res) => {
-                console.log('res', res);
                 expect(res.body.todos.length).toBe(2);
             })
             .end(done);
     });
+    it('GET /todos:id', (done) => {
+        request(app)
+            .get(`/todos/${todos[0]._id}`)
+            .expect(200)
+            .expect((res) => {
+                expect(res.body._id).toEqual(todos[0]._id);
+                expect([res.body].length).toBe(1);
+            })
+            .end(done);
+    });
+
+    it('GET /todo:id, expect status code is 404 if id is not valid', (done) => {
+        const notValidId = '123';
+        request(app)
+            .get(`/todos/${notValidId}`)
+            .expect(400)
+            .end(done);
+    });
+
+    it('GET /todo:id, expect status code is 404 if response object is empty', (done) => {
+        const testId = new ObjectID();
+        request(app)
+            .get(`/todos/${testId}`)
+            .expect(404)
+            .end(done);
+    });
+
+
+
 });
