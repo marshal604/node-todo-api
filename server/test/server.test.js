@@ -98,6 +98,40 @@ describe('Server Test Case', () => {
             .end(done);
     });
 
+    it('Delete /todo:id', (done) => {
+        const id = todos[0]._id;
+        request(app)
+            .delete(`/todos/${id}`)
+            .expect(200)
+            .expect(res => {
+                expect(res.body._id).toEqual(id);
+                expect([res.body].length).toBe(1);
+            })
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+                Todo.findById(id).then(doc => {
+                    console.log(doc);
+                    expect(doc).toNotExist();
+                    done();
+                }).catch(e => done(e));
+            });
+    });
 
+    it('Delete /todo:id, expect status code is 404 if id is not valid', (done) => {
+        const isNotValidId = '123';
+        request(app)
+            .delete(`/todos/${isNotValidId}`)
+            .expect(400)
+            .end(done);
+    });
 
+    it('Delete /todo:id, expect status code is 404 if response object is empty', (done) => {
+        const testId = new ObjectID();
+        request(app)
+            .delete(`/todos/${testId}`)
+            .expect(404)
+            .end(done);
+    })
 });

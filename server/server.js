@@ -54,6 +54,23 @@ app.get('/todos/:id', (req, res) => {
     });
 });
 
+app.delete('/todos/:id', (req, res) => {
+    const id = req.params.id;
+    if (!ObjectID.isValid(id)) {
+        return res.status(400).send({
+            errorMsg: 'your id is not valid'
+        })
+    }
+    Todo.findByIdAndRemove(id).then(doc => {
+        if (!doc) {
+            return res.status(404).send({
+                errorMsg: 'not found data by your id'
+            });
+        }
+        res.send(doc);
+    }).catch(e => res.status(404).send('Unable to connect to DB'));
+});
+
 app.listen(port, () => {
     console.log(`Server is runing on port ${port}`);
 });
