@@ -4,6 +4,7 @@ const { ObjectID } = require('mongodb');
 const { mongoose } = require('./db/mongoose');
 const { User } = require('./models/user');
 const { Todo } = require('./models/todo');
+const _ = require('lodash');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -62,6 +63,32 @@ app.delete('/todos/:id', (req, res) => {
         })
     }
     Todo.findByIdAndRemove(id).then(doc => {
+        if (!doc) {
+            return res.status(404).send({
+                errorMsg: 'not found data by your id'
+            });
+        }
+        res.send(doc);
+    }).catch(e => res.status(404).send('Unable to connect to DB'));
+});
+
+app.patch('/todos/:id', (req, res) => {
+    const id = req.params.id;
+    const body = _.pick(req.body, ['text', 'completed']);
+
+    if (!ObjectID.isValid(id)) {
+        return res.status(400).send({
+            errorMsg: 'your id is not valid'
+        })
+    }
+
+    if (_.isBoolean(body.completed) && body.completed) {
+        body.completedAt = new Date().getTime();
+    } else {
+        body.completed = false;
+        body.completedAt = null;
+    }
+    Todo.findByIdAndUpdate(id, { $set: body }, { new: true }).then(doc => {
         if (!doc) {
             return res.status(404).send({
                 errorMsg: 'not found data by your id'

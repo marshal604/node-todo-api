@@ -112,7 +112,6 @@ describe('Server Test Case', () => {
                     return done(err);
                 }
                 Todo.findById(id).then(doc => {
-                    console.log(doc);
                     expect(doc).toNotExist();
                     done();
                 }).catch(e => done(e));
@@ -133,5 +132,45 @@ describe('Server Test Case', () => {
             .delete(`/todos/${testId}`)
             .expect(404)
             .end(done);
-    })
+    });
+
+    it('PATCH /todo/:id', (done) => {
+        const id = todos[0]._id;
+        const text = encodeURIComponent('just test');
+        const completed = true;
+        request(app)
+            .patch(`/todos/${id}`)
+            .expect(200)
+            .send({ text, completed })
+            .expect((res) => {
+                expect(res.body).toInclude({
+                    _id: id,
+                    text: text,
+                    completed: completed
+                });
+            })
+            .end(done);
+    });
+
+    it('PATCH /todo/:id, expect status code is 404 if id is not valid', (done) => {
+        const isNotValidId = '123';
+        const text = encodeURIComponent('just test');
+        const completed = true;
+        request(app)
+            .patch(`/todos/${isNotValidId}`)
+            .expect(400)
+            .send({ text, completed })
+            .end(done);
+    });
+
+    it('PATCH /todo/:id, expect status code is 404 if response object is empty', (done) => {
+        const id = new ObjectID();
+        const text = encodeURIComponent('just test');
+        const completed = true;
+        request(app)
+            .patch(`/todos/${id}`)
+            .expect(404)
+            .send({ text, completed })
+            .end(done);
+    });
 });
